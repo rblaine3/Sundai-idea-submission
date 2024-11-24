@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card bg-dark text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h1 class="card-title text-white">{{ idea.name }}</h1>
+                    <p class="text-white-50">
+                        Submitted by {{ idea.author.name if idea.author else 'Anonymous' }} on 
+                        {{ idea.submission_date.strftime('%Y-%m-%d') }}
+                    </p>
+                    <p class="text-white-50">Target User: {{ idea.proposed_user }}</p>
+                </div>
+                <div class="text-end">
+                    <div class="vote-buttons">
+                        <form action="{{ url_for('vote', idea_id=idea.id, vote_type='up') }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-success">
+                                <i class="fas fa-arrow-up"></i> {{ idea.upvotes }}
+                            </button>
+                        </form>
+                        <form action="{{ url_for('vote', idea_id=idea.id, vote_type='down') }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-arrow-down"></i> {{ idea.downvotes }}
+                            </button>
+                        </form>
+                    </div>
+                    <p class="text-white-50 mt-2">Sunday: {{ idea.sunday_date.strftime('%Y-%m-%d') }}</p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-dark border-primary">
+                        <div class="card-header bg-gradient" style="background: linear-gradient(45deg, #5C0099, #FF00FF)">
+                            <h3 class="text-white mb-0">Hypothesis</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-white">{{ idea.hypothesis }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-dark border-primary">
+                        <div class="card-header bg-gradient" style="background: linear-gradient(45deg, #5C0099, #FF00FF)">
+                            <h3 class="text-white mb-0">Problem</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-white">{{ idea.problem }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if idea.proposed_solution %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-dark border-primary">
+                        <div class="card-header bg-gradient" style="background: linear-gradient(45deg, #5C0099, #FF00FF)">
+                            <h3 class="text-white mb-0">Proposed Solution</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-white">{{ idea.proposed_solution }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <div class="card bg-dark border-primary">
+                        <div class="card-header bg-gradient" style="background: linear-gradient(45deg, #5C0099, #FF00FF)">
+                            <h3 class="text-white mb-0">Comments</h3>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.is_authenticated %}
+                            <form action="{{ url_for('add_comment', idea_id=idea.id) }}" method="post" class="mb-4">
+                                <div class="form-group">
+                                    <textarea name="content" class="form-control bg-dark text-white" rows="3" required placeholder="Add a comment..."></textarea>
+                                </div>
+                                <button type="submit" class="btn mt-2" style="background: linear-gradient(45deg, #5C0099, #FF00FF); color: white;">Submit Comment</button>
+                            </form>
+                            {% endif %}
+
+                            {% for comment in idea.comments|sort(attribute='timestamp', reverse=true) %}
+                            <div class="comment mb-3">
+                                <div class="card bg-dark">
+                                    <div class="card-body">
+                                        <p class="text-white mb-1">{{ comment.content }}</p>
+                                        <small class="text-white-50">
+                                            By {{ comment.author.name if comment.author else 'Anonymous' }} on 
+                                            {{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(255, 0, 255, 0.2);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255, 0, 255, 0.2);
+}
+
+.btn-outline-success, .btn-outline-danger {
+    border-width: 2px;
+}
+
+.btn-outline-success {
+    color: #00FFFF;
+    border-color: #00FFFF;
+}
+
+.btn-outline-success:hover {
+    background-color: #00FFFF;
+    color: #000;
+}
+
+.btn-outline-danger {
+    color: #FF00FF;
+    border-color: #FF00FF;
+}
+
+.btn-outline-danger:hover {
+    background-color: #FF00FF;
+    color: #000;
+}
+
+textarea.form-control:focus {
+    background-color: #1a1a1a;
+    color: white;
+    border-color: #FF00FF;
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 255, 0.25);
+}
+
+.comment .card {
+    background: rgba(92, 0, 153, 0.1) !important;
+}
+</style>
+{% endblock %}

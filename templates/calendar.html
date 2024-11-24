@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="text-white">Sundai Ideas Calendar</h2>
+            <div class="btn-group">
+                <button class="btn btn-outline-primary" onclick="previousMonth()">Previous</button>
+                <button class="btn btn-outline-primary" id="currentMonth"></button>
+                <button class="btn btn-outline-primary" onclick="nextMonth()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="calendar-container">
+                <table class="table table-dark table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendarBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for displaying ideas -->
+<div class="modal fade" id="ideasModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title">Ideas for <span id="modalDate"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-container {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+    height: 100px;
+    width: 14.28%;
+}
+
+.calendar-day {
+    position: relative;
+    height: 100%;
+    min-height: 100px;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background: rgba(92, 0, 153, 0.3);
+}
+
+.has-ideas {
+    background: rgba(255, 0, 255, 0.2);
+}
+
+.today {
+    border: 2px solid #00FFFF !important;
+}
+
+.other-month {
+    opacity: 0.5;
+}
+
+.idea-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #5C0099;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+</style>
+
+<script>
+let currentDate = new Date();
+let ideas = {{ ideas|tojson|safe }};
+
+function formatDate(date) {
+    return date.toISOString().split('T')[0];
+}
+
+function getIdeasForDate(date) {
+    const dateStr = formatDate(date);
+    return ideas.filter(idea => idea.sunday_date.startsWith(dateStr));
+}
+
+function showIdeasModal(date) {
+    const dateIdeas = getIdeasForDate(date);
+    const modalDate = document.getElementById('modalDate');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalDate.textContent = date.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    if (dateIdeas.length === 0) {
+        modalContent.innerHTML = '<p>No ideas scheduled for this date.</p>';
+    } else {
+        modalContent.innerHTML = dateIdeas.map(idea => `
+            <div class="card bg-dark mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">${idea.name}</h5>
+                    <p class="card-text"><strong>Target User:</strong> ${idea.proposed_user}</p>
+                    <p class="card-text">${idea.hypothesis}</p>
+                    <a href="/idea/${idea.id}" class="btn btn-outline-primary">View Details</a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    new bootstrap.Modal(document.getElementById('ideasModal')).show();
+}
+
+function generateCalendar(date) {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    document.getElementById('currentMonth').textContent = date.toLocaleDateString('en-US', { 
+        month: 'long',
+        year: 'numeric'
+    });
+
+    const calendarBody = document.getElementById('calendarBody');
+    calendarBody.innerHTML = '';
+    
+    const today = new Date();
+    let currentRow;
+    
+    for (let i = 0; i < 42; i++) {
+        if (i % 7 === 0) {
+            currentRow = document.createElement('tr');
+            calendarBody.appendChild(currentRow);
+        }
+        
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateIdeas = getIdeasForDate(currentDate);
+        
+        const cell = document.createElement('td');
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        
+        if (currentDate.getMonth() !== date.getMonth()) {
+            dayDiv.classList.add('other-month');
+        }
+        
+        if (dateIdeas.length > 0) {
+            dayDiv.classList.add('has-ideas');
+            const ideaCount = document.createElement('div');
+            ideaCount.className = 'idea-count';
+            ideaCount.textContent = dateIdeas.length;
+            dayDiv.appendChild(ideaCount);
+        }
+        
+        if (currentDate.toDateString() === today.toDateString()) {
+            cell.classList.add('today');
+        }
+        
+        dayDiv.onclick = () => showIdeasModal(currentDate);
+        dayDiv.innerHTML += currentDate.getDate();
+        cell.appendChild(dayDiv);
+        currentRow.appendChild(cell);
+    }
+}
+
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    generateCalendar(currentDate);
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    generateCalendar(currentDate);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    generateCalendar(currentDate);
+});
+</script>
+{% endblock %}

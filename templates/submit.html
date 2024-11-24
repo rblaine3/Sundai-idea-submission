@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card idea-submission-card">
+            <div class="card-header">
+                <h2 class="mb-0">Submit New Idea</h2>
+                <p class="text-muted mb-0">For Sunday {{ next_sunday.strftime('%B %d, %Y') }}</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control", placeholder="Enter a concise name for your idea") }}
+                        {% if form.name.errors %}
+                            {% for error in form.name.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.hypothesis.label(class="form-label") }}
+                        {{ form.hypothesis(class="form-control", rows=3, placeholder="What is your hypothesis about this idea?") }}
+                        {% if form.hypothesis.errors %}
+                            {% for error in form.hypothesis.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.proposed_user.label(class="form-label") }}
+                        {{ form.proposed_user(class="form-control", placeholder="Who is the target user or persona for this idea?") }}
+                        {% if form.proposed_user.errors %}
+                            {% for error in form.proposed_user.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.problem.label(class="form-label") }}
+                        {{ form.problem(class="form-control", rows=3, placeholder="What problem does this solve?") }}
+                        {% if form.problem.errors %}
+                            {% for error in form.problem.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.proposed_solution.label(class="form-label") }}
+                        {{ form.proposed_solution(class="form-control", rows=3, placeholder="Optional: Describe your proposed solution") }}
+                        {% if form.proposed_solution.errors %}
+                            {% for error in form.proposed_solution.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

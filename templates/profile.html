@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ current_user.name }}</h3>
+                    <p class="card-text">
+                        <strong>Email:</strong> {{ current_user.email }}<br>
+                        {% if current_user.affiliation %}
+                        <strong>Affiliation:</strong> {{ current_user.affiliation }}<br>
+                        {% endif %}
+                        {% if current_user.linkedin %}
+                        <strong>LinkedIn:</strong> <a href="{{ current_user.linkedin }}" target="_blank">Profile</a><br>
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">My Ideas</h4>
+                </div>
+                <div class="card-body">
+                    {% if current_user.ideas %}
+                        <div class="list-group">
+                        {% for idea in current_user.ideas %}
+                            <a href="{{ url_for('view_idea', idea_id=idea.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ idea.name }}</h5>
+                                    <small>{{ idea.submission_date.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                                <p class="mb-1">{{ idea.hypothesis[:200] }}{% if idea.hypothesis|length > 200 %}...{% endif %}</p>
+                                <small>
+                                    <i class="bi bi-arrow-up-circle"></i> {{ idea.upvotes }}
+                                    <i class="bi bi-arrow-down-circle"></i> {{ idea.downvotes }}
+                                    <i class="bi bi-chat"></i> {{ idea.comments|length }}
+                                </small>
+                            </a>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't submitted any ideas yet.</p>
+                        <a href="{{ url_for('submit') }}" class="btn btn-primary">Submit Your First Idea</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
